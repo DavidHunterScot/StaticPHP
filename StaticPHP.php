@@ -2,10 +2,10 @@
 
 class StaticPHP
 {
-    public function __construct( String $path_to_input_directory, String $path_to_output_directory )
+    public function __construct( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore = "" )
     {
         $this->emptyDirectory( $path_to_output_directory );
-        $this->processDirectory( $path_to_input_directory, $path_to_output_directory );
+        $this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore );
     }
 
     private function emptyDirectory( String $path_to_directory )
@@ -47,7 +47,7 @@ class StaticPHP
             echo "Done. \n";
     }
 
-    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory )
+    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore )
     {
         if( ! is_dir( $path_to_input_directory ) )
             die( "Directory does not exist: " . $path_to_input_directory );
@@ -75,9 +75,26 @@ class StaticPHP
             $path_to_input_directory_item = $path_to_input_directory . DIRECTORY_SEPARATOR . $directory_item;
             $path_to_output_directory_item = $path_to_output_directory . DIRECTORY_SEPARATOR . $directory_item;
 
+            if( is_string( $items_to_ignore ) )
+            {
+                $items_to_ignore = explode( ";", $items_to_ignore );
+            }
+
+            if( is_array( $items_to_ignore ) )
+            {
+                foreach( $items_to_ignore as $item_to_ignore )
+                {
+                    if( $item_to_ignore != "" && str_contains( $directory_item, $item_to_ignore ) )
+                    {
+                        echo "Ignoring Directory Item: " . $path_to_input_directory_item . "\n";
+                        continue( 2 );
+                    }
+                }
+            }
+
             if( is_dir( $path_to_input_directory_item ) )
             {
-                $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item );
+                $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item, $items_to_ignore );
             }
             
             if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -4 ) == ".php" )
@@ -125,6 +142,7 @@ class StaticPHP
 
 $path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
 $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
+$items_to_ignore = "";
 
 if( $argc > 0 && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
 {
@@ -139,6 +157,8 @@ if( $argc >= 0 )
         $path_to_input_directory = $argv[ 0 ];
     if( isset( $argv[ 1 ] ) )
         $path_to_output_directory = $argv[ 1 ];
+    if( isset( $argv[ 2 ] ) )
+        $items_to_ignore = $argv[ 2 ];
 }
 
-new StaticPHP( $path_to_input_directory, $path_to_output_directory );
+new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore );
