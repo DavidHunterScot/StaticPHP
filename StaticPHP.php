@@ -126,7 +126,7 @@ class StaticPHP
 $path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
 $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
 
-if( $argc > 0 && $argv[ 0 ] == basename( __FILE__ ) )
+if( $argc > 0 && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
 {
     unset( $argv[ 0 ] );
     $argv = array_values( $argv );
