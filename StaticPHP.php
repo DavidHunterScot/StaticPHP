@@ -79,6 +79,13 @@ class StaticPHP
             {
                 $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item );
             }
+            
+            if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -4 ) == ".php" )
+            {
+                $path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -4 ) . ".html";
+                $this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item );
+                continue;
+            }
 
             if( is_file( $path_to_input_directory_item ) )
             {
@@ -91,5 +98,27 @@ class StaticPHP
         {
             echo "Done.\n";
         }
+    }
+
+    private function processPHP( $path_to_input_file, $path_to_output_file )
+    {
+        if( ! is_file( $path_to_input_file ) )
+            return;
+        
+        echo "Processing PHP File: " . $path_to_input_file . "\n";
+
+        ob_start();
+    
+        include( $path_to_input_file );
+        
+        $input_file_contents = ob_get_contents();
+        ob_end_clean();
+        
+        echo "Outputting HTML File: "  . $path_to_output_file . "\n";
+
+        @chmod( $path_to_output_file, 0755 );
+        $open_output_file_for_writing = fopen( $path_to_output_file, "w" );
+        fputs( $open_output_file_for_writing, $input_file_contents, strlen( $input_file_contents ) );
+        fclose( $open_output_file_for_writing );
     }
 }
