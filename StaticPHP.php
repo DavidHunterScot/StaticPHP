@@ -140,25 +140,28 @@ class StaticPHP
     }
 }
 
-$path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
-$path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
-$items_to_ignore = "";
-
-if( $argc > 0 && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
+if( isset( $argv[ 0 ] ) )
 {
-    unset( $argv[ 0 ] );
-    $argv = array_values( $argv );
-    $argc--;
-}
+    $path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
+    $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
+    $items_to_ignore = "";
 
-if( $argc >= 0 )
-{
-    if( isset( $argv[ 0 ] ) )
-        $path_to_input_directory = $argv[ 0 ];
-    if( isset( $argv[ 1 ] ) )
-        $path_to_output_directory = $argv[ 1 ];
-    if( isset( $argv[ 2 ] ) )
-        $items_to_ignore = $argv[ 2 ];
-}
+    if( $argc > 0 && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
+    {
+        unset( $argv[ 0 ] );
+        $argv = array_values( $argv );
+        $argc--;
+    }
 
-new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore );
+    if( $argc >= 0 )
+    {
+        if( isset( $argv[ 0 ] ) )
+            $path_to_input_directory = $argv[ 0 ];
+        if( isset( $argv[ 1 ] ) )
+            $path_to_output_directory = $argv[ 1 ];
+        if( isset( $argv[ 2 ] ) )
+            $items_to_ignore = $argv[ 2 ];
+    }
+
+    new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore );
+}
