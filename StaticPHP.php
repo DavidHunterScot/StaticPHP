@@ -123,6 +123,9 @@ class StaticPHP
     }
 }
 
+$path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
+$path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
+
 if( $argc > 0 && $argv[ 0 ] == basename( __FILE__ ) )
 {
     unset( $argv[ 0 ] );
@@ -130,10 +133,12 @@ if( $argc > 0 && $argv[ 0 ] == basename( __FILE__ ) )
     $argc--;
 }
 
-if( $argc >= 2 )
+if( $argc >= 0 )
 {
-    $path_to_input_directory = $argv[ 0 ];
-    $path_to_output_directory = $argv[ 1 ];
-
-    new StaticPHP( $path_to_input_directory, $path_to_output_directory );
+    if( isset( $argv[ 0 ] ) )
+        $path_to_input_directory = $argv[ 0 ];
+    if( isset( $argv[ 1 ] ) )
+        $path_to_output_directory = $argv[ 1 ];
 }
+
+new StaticPHP( $path_to_input_directory, $path_to_output_directory );
