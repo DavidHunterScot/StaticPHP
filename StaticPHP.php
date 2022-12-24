@@ -122,3 +122,18 @@ class StaticPHP
         fclose( $open_output_file_for_writing );
     }
 }
+
+if( $argc > 0 && $argv[ 0 ] == basename( __FILE__ ) )
+{
+    unset( $argv[ 0 ] );
+    $argv = array_values( $argv );
+    $argc--;
+}
+
+if( $argc >= 2 )
+{
+    $path_to_input_directory = $argv[ 0 ];
+    $path_to_output_directory = $argv[ 1 ];
+
+    new StaticPHP( $path_to_input_directory, $path_to_output_directory );
+}
