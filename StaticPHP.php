@@ -154,6 +154,7 @@ if( isset( $argv[ 0 ] ) )
     $path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
     $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
     $items_to_ignore = "";
+	$friendly_urls = false;
 
     if( $argc > 0 && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
     {
@@ -170,7 +171,9 @@ if( isset( $argv[ 0 ] ) )
             $path_to_output_directory = $argv[ 1 ];
         if( isset( $argv[ 2 ] ) )
             $items_to_ignore = $argv[ 2 ];
+		if( isset( $argv[ 3 ] ) )
+			$friendly_urls = $argv[ 3 ] == "true" ? true : false;
     }
 
-    new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore );
+    new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls );
 }
