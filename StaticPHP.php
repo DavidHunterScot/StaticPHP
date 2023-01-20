@@ -2,10 +2,10 @@
 
 class StaticPHP
 {
-    public function __construct( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore = "" )
+    public function __construct( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore = "", bool $friendly_urls = false )
     {
         $this->emptyDirectory( $path_to_output_directory );
-        $this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore );
+        $this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls );
     }
 
     private function emptyDirectory( String $path_to_directory )
@@ -47,7 +47,7 @@ class StaticPHP
             echo "Done. \n";
     }
 
-    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore )
+    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore, bool $friendly_urls = false )
     {
         if( ! is_dir( $path_to_input_directory ) )
             die( "Directory does not exist: " . $path_to_input_directory );
@@ -94,12 +94,21 @@ class StaticPHP
 
             if( is_dir( $path_to_input_directory_item ) )
             {
-                $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item, $items_to_ignore );
+                $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item, $items_to_ignore, $friendly_urls );
             }
             
             if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -4 ) == ".php" )
             {
                 $path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -4 ) . ".html";
+
+                if( $friendly_urls && substr( $path_to_output_directory_item, strrpos( $path_to_output_directory_item, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
+                {
+                    if( ! is_dir( substr( $path_to_output_directory_item, 0, -5 ) ) )
+                        mkdir( substr( $path_to_output_directory_item, 0, -5 ) );
+                    
+                    $path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
+                }
+
                 $this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item );
                 continue;
             }
