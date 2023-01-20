@@ -101,15 +101,7 @@ class StaticPHP
             {
                 $path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -4 ) . ".html";
 
-                if( $friendly_urls && substr( $path_to_output_directory_item, strrpos( $path_to_output_directory_item, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
-                {
-                    if( ! is_dir( substr( $path_to_output_directory_item, 0, -5 ) ) )
-                        mkdir( substr( $path_to_output_directory_item, 0, -5 ) );
-                    
-                    $path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
-                }
-
-                $this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item );
+                $this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls );
                 continue;
             }
 
@@ -126,7 +118,7 @@ class StaticPHP
         }
     }
 
-    private function processPHP( $path_to_input_file, $path_to_output_file )
+    private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls )
     {
         if( ! is_file( $path_to_input_file ) )
             return;
@@ -139,6 +131,20 @@ class StaticPHP
         
         $input_file_contents = ob_get_contents();
         ob_end_clean();
+
+        if( isset( $custom_output_path ) )
+        {
+            $path_to_output_file = $custom_output_path;
+        }
+        else if( $friendly_urls && substr( $path_to_output_file, strrpos( $path_to_output_file, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
+        {
+            if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
+            {
+                mkdir( substr( $path_to_output_file, 0, -5 ) );
+            }
+            
+            $path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
+        }
         
         echo "Outputting HTML File: "  . $path_to_output_file . "\n";
 
