@@ -155,19 +155,16 @@ class StaticPHP
     }
 }
 
-if( isset( $argv[ 0 ] ) )
+if( isset( $argv[ 0 ] ) && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
 {
     $path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
     $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
     $items_to_ignore = "";
 	$friendly_urls = false;
 
-    if( $argc > 0 && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
-    {
-        unset( $argv[ 0 ] );
-        $argv = array_values( $argv );
-        $argc--;
-    }
+    unset( $argv[ 0 ] );
+    $argv = array_values( $argv );
+    $argc--;
 
     if( $argc >= 0 )
     {
