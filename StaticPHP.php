@@ -84,7 +84,7 @@ class StaticPHP
             {
                 foreach( $items_to_ignore as $item_to_ignore )
                 {
-                    if( $item_to_ignore != "" && str_contains( $directory_item, $item_to_ignore ) )
+                    if( $item_to_ignore != "" && strpos( $directory_item, $item_to_ignore ) !== false )
                     {
                         echo "Ignoring Directory Item: " . $path_to_input_directory_item . "\n";
                         continue( 2 );
