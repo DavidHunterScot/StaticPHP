@@ -2,7 +2,7 @@
 
 class StaticPHP
 {
-    public function __construct( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore = "", bool $friendly_urls = false )
+    public function __construct( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore = [], bool $friendly_urls = false )
     {
         $this->emptyDirectory( $path_to_output_directory );
         $this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls );
@@ -47,7 +47,7 @@ class StaticPHP
             echo "Done. \n";
     }
 
-    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, String|array $items_to_ignore, bool $friendly_urls = false )
+    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore, bool $friendly_urls = false )
     {
         if( ! is_dir( $path_to_input_directory ) )
             die( "Directory does not exist: " . $path_to_input_directory );
@@ -159,7 +159,7 @@ if( isset( $argv[ 0 ] ) && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
 {
     $path_to_input_directory = "." . DIRECTORY_SEPARATOR . "input";
     $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
-    $items_to_ignore = "";
+    $items_to_ignore = [];
 	$friendly_urls = false;
 
     unset( $argv[ 0 ] );
@@ -172,8 +172,8 @@ if( isset( $argv[ 0 ] ) && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
             $path_to_input_directory = $argv[ 0 ];
         if( isset( $argv[ 1 ] ) )
             $path_to_output_directory = $argv[ 1 ];
-        if( isset( $argv[ 2 ] ) )
-            $items_to_ignore = $argv[ 2 ];
+        if( isset( $argv[ 2 ] ) && strlen( $argv[ 2 ] ) > 0 )
+            $items_to_ignore = [ $argv[ 2 ] ];
 		if( isset( $argv[ 3 ] ) )
 			$friendly_urls = $argv[ 3 ] == "true" ? true : false;
     }
