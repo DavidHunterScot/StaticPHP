@@ -1,3 +1,5 @@
+![StaticPHP Promo Image](StaticPHP-Promo1.png)
+
 # Welcome to StaticPHP!
 
 A simple Static Site Generator (SSG) written in PHP.
