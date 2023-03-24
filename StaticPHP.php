@@ -2,10 +2,10 @@
 
 class StaticPHP
 {
-    public function __construct( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore = [], bool $friendly_urls = false )
+    public function __construct( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore = [], bool $friendly_urls = false, String $metaDataDelimiter = "---" )
     {
         $this->emptyDirectory( $path_to_output_directory );
-        $this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls );
+        $this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls, $metaDataDelimiter );
     }
 
     private function emptyDirectory( String $path_to_directory )
@@ -47,7 +47,7 @@ class StaticPHP
             echo "Done. \n";
     }
 
-    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore, bool $friendly_urls = false )
+    private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore, bool $friendly_urls = false, String $metaDataDelimiter )
     {
         if( ! is_dir( $path_to_input_directory ) )
             die( "Directory does not exist: " . $path_to_input_directory );
@@ -94,14 +94,14 @@ class StaticPHP
 
             if( is_dir( $path_to_input_directory_item ) )
             {
-                $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item, $items_to_ignore, $friendly_urls );
+                $this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item, $items_to_ignore, $friendly_urls, $metaDataDelimiter );
             }
             
             if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -4 ) == ".php" )
             {
                 $path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -4 ) . ".html";
 
-                $this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls );
+                $this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls, $metaDataDelimiter );
                 continue;
             }
 
@@ -156,18 +156,17 @@ class StaticPHP
         }
     }
 
-    private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls )
+    private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
     {
         if( ! is_file( $path_to_input_file ) )
             return;
         
         echo "Processing PHP File: " . $path_to_input_file . "\n";
 
-        $delimiter = "---";
         $file_contents = file_get_contents( $path_to_input_file );
         $metadata = array();
 
-        $this->processMetaData( $delimiter, $file_contents, $metadata, $file_contents );
+        $this->processMetaData( $metaDataDelimiter, $file_contents, $metadata, $file_contents );
 
         $file_contents = "?>\r\n" . $file_contents;
 
@@ -207,6 +206,7 @@ if( isset( $argv[ 0 ] ) && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
     $path_to_output_directory = "." . DIRECTORY_SEPARATOR . "output";
     $items_to_ignore = [];
 	$friendly_urls = false;
+    $metaDataDelimiter = "---";
 
     unset( $argv[ 0 ] );
     $argv = array_values( $argv );
@@ -222,7 +222,9 @@ if( isset( $argv[ 0 ] ) && basename( $argv[ 0 ] ) == basename( __FILE__ ) )
             $items_to_ignore = [ $argv[ 2 ] ];
 		if( isset( $argv[ 3 ] ) )
 			$friendly_urls = $argv[ 3 ] == "true" ? true : false;
+        if( isset( $argv[ 4 ] ) )
+            $metaDataDelimiter = $argv[ 4 ];
     }
 
-    new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls );
+    new StaticPHP( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls, $metaDataDelimiter );
 }
