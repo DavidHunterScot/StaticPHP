@@ -124,6 +124,8 @@ class StaticPHP
 
         if( count( $input_lines ) > 0 && trim( $input_lines[ 0 ] ) == $delimiter )
         {
+            echo "Processing MetaData...\n\n";
+
             unset( $input_lines[ 0 ] );
 
             for( $line_number = 1; $line_number <= count( $input_lines ); $line_number++ )
@@ -140,10 +142,17 @@ class StaticPHP
 
                 $data = explode( ":", $input_line, 2 );
 
-                $metadata[ trim( $data[ 0 ] ) ] = trim( $data[ 1 ] );
+                $metadata_key = trim( $data[ 0 ] );
+                $metadata_value = trim( $data[ 1 ] );
+
+                echo "Setting MetaData Key: " . $metadata_key . "\n";
+                echo "with matching value: " . $metadata_value . "\n\n";
+                $metadata[ $metadata_key ] = $metadata_value;
             }
 
             $output_contents = join( "\r\n", $input_lines );
+
+            echo "End of MetaData.\n\n";
         }
     }
 
