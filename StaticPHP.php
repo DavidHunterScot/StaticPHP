@@ -118,6 +118,35 @@ class StaticPHP
         }
     }
 
+    private function processMetaData( String $delimiter, String $input_contents, array &$metadata, String &$output_contents )
+    {
+        $input_lines = explode( "\r\n", $input_contents );
+
+        if( count( $input_lines ) > 0 && trim( $input_lines[ 0 ] ) == $delimiter )
+        {
+            unset( $input_lines[ 0 ] );
+
+            for( $line_number = 1; $line_number <= count( $input_lines ); $line_number++ )
+            {
+                $input_line = trim( $input_lines[ $line_number ] );
+
+                unset( $input_lines[ $line_number ] );
+
+                if( $input_line == $delimiter )
+                    break;
+
+                if( ! strpos( $input_line, ":" ) )
+                    continue;
+
+                $data = explode( ":", $input_line, 2 );
+
+                $metadata[ trim( $data[ 0 ] ) ] = trim( $data[ 1 ] );
+            }
+
+            $output_contents = join( "\r\n", $input_lines );
+        }
+    }
+
     private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls )
     {
         if( ! is_file( $path_to_input_file ) )
@@ -125,9 +154,17 @@ class StaticPHP
         
         echo "Processing PHP File: " . $path_to_input_file . "\n";
 
+        $delimiter = "---";
+        $file_contents = file_get_contents( $path_to_input_file );
+        $metadata = array();
+
+        $this->processMetaData( $delimiter, $file_contents, $metadata, $file_contents );
+
+        $file_contents = "?>\r\n" . $file_contents;
+
         ob_start();
     
-        include( $path_to_input_file );
+        eval( $file_contents );
         
         $input_file_contents = ob_get_contents();
         ob_end_clean();
