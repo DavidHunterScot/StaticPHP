@@ -163,19 +163,16 @@ class StaticPHP
         
         echo "Processing PHP File: " . $path_to_input_file . "\n";
 
-        $file_contents = file_get_contents( $path_to_input_file );
-        $metadata = array();
-
-        $this->processMetaData( $metaDataDelimiter, $file_contents, $metadata, $file_contents );
-
-        $file_contents = "?>\r\n" . $file_contents;
-
         ob_start();
     
-        eval( $file_contents );
+        include( $path_to_input_file );
         
         $input_file_contents = ob_get_contents();
         ob_end_clean();
+        
+        $metadata = array();
+        
+        $this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 
         if( isset( $custom_output_path ) )
         {
