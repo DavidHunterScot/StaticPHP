@@ -57,6 +57,7 @@ echo "Setting public files directory path to: " . $path_to_public_files . "\n";
 if( count( $paths_to_ignore ) > 0 )
     echo "Setting paths to ignore to: " . join( ", ", $paths_to_ignore ) . "\n";
 
+echo "Setting Friendly URLs to: " . ( $friendly_urls ? "Enabled" : "Disabled" ) . "\n";
 echo "Setting MetaData Delimiter to: " . $metadata_delimiter;
 
 echo "\nFetching latest " . $project_name . " from " . $path_to_latest_code . "\n";
