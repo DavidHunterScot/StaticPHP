@@ -120,7 +120,7 @@ class StaticPHP
 
     private function processMetaData( String $delimiter, String $input_contents, array &$metadata, String &$output_contents )
     {
-        $input_lines = explode( "\r\n", $input_contents );
+        $input_lines = explode( "\n", $input_contents );
 
         if( count( $input_lines ) > 0 && trim( $input_lines[ 0 ] ) == $delimiter )
         {
@@ -155,6 +155,24 @@ class StaticPHP
             echo "End of MetaData.\n\n";
         }
     }
+    
+    private function processMetaDataPlaceHolders( String $delimiter, String $input_contents, array $metadata, String &$output_contents )
+    {
+    	echo "Processing MetaData PlaceHolders...\n";
+    	$pattern = '/' . $delimiter . '\s*metadata\.(\S+)\s*' . $delimiter . '/';
+    	
+    	$output_contents = preg_replace_callback
+    	(
+    		$pattern,
+    		function( $matches ) use ( $metadata )
+		{
+    			$key = $matches[ 1 ];
+    			return $metadata[ $key ];
+	        },
+        	$input_contents
+        );
+        echo "Done.\n\n";
+    }
 
     private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
     {
@@ -173,6 +191,8 @@ class StaticPHP
         $metadata = array();
         
         $this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+        
+        $this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 
         if( isset( $custom_output_path ) )
         {
