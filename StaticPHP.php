@@ -211,19 +211,34 @@ class StaticPHP
 		echo "Removing temporary file...\n";
 		unlink( $temp_file_path );
 
-        if( isset( $custom_output_path ) )
+        if( isset( $custom_output_path ) || isset( $metadata['custom_output_path'] ) )
         {
-            $path_to_output_file = $custom_output_path;
+			if( isset( $metadata['custom_output_path'] ) )
+				$path_to_output_file = $metadata['custom_output_path'];
+			else if( isset( $custom_output_path ) )
+				$path_to_output_file = $custom_output_path;
         }
-        else if( $friendly_urls && substr( $path_to_output_file, strrpos( $path_to_output_file, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
-        {
-            if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
-            {
-                mkdir( substr( $path_to_output_file, 0, -5 ) );
-            }
-            
-            $path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
-        }
+		else if( substr( $path_to_output_file, strrpos( $path_to_output_file, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
+		{
+			if( isset( $metadata['friendly_urls'] ) && $metadata['friendly_urls'] == "true" )
+			{
+				if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
+				{
+					mkdir( substr( $path_to_output_file, 0, -5 ) );
+				}
+				
+				$path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
+			}
+			else if( ! isset( $metadata['friendly_urls'] ) && isset( $friendly_urls ) && boolval( $friendly_urls ) === true )
+			{
+				if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
+				{
+					mkdir( substr( $path_to_output_file, 0, -5 ) );
+				}
+				
+				$path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
+			}
+		}
         
         echo "Outputting HTML File: "  . $path_to_output_file . "\n";
 
