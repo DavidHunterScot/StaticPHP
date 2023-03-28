@@ -165,9 +165,15 @@ class StaticPHP
     	(
     		$pattern,
     		function( $matches ) use ( $metadata )
-		{
+			{
     			$key = $matches[ 1 ];
-    			return $metadata[ $key ];
+				
+				if( array_key_exists( $key, $metadata ) )
+				{
+					$value = $metadata[ $key ];
+					echo "Replacing " . $key . " with " . $value . "\n";
+					return $value;
+				}
 	        },
         	$input_contents
         );
@@ -180,19 +186,30 @@ class StaticPHP
             return;
         
         echo "Processing PHP File: " . $path_to_input_file . "\n";
-
-        ob_start();
-    
-        include( $path_to_input_file );
+		
+		$input_file_contents = file_get_contents( $path_to_input_file );
+		
+		$metadata = array();
+		
+		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		
+		$temp_file_path = tempnam( dirname( $path_to_input_file ), "staticphp_" );
+		echo "Creating temporary file (" . $temp_file_path . ")...\n";
+		file_put_contents( $temp_file_path, $input_file_contents );
+		
+		echo "Including temporary file...\n";
         
+		ob_start();
+		
+        include $temp_file_path;
         $input_file_contents = ob_get_contents();
-        ob_end_clean();
         
-        $metadata = array();
-        
-        $this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
-        
-        $this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		ob_end_clean();
+		
+		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		
+		echo "Removing temporary file...\n";
+		unlink( $temp_file_path );
 
         if( isset( $custom_output_path ) )
         {
