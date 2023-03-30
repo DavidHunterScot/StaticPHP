@@ -193,6 +193,34 @@ class StaticPHP
 		
 		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 		
+		// Check if a base layout is needed.
+		if( isset( $metadata['layout'] ) )
+		{
+			// Get full path to layout file assuming it is relative to StaticPHP.
+			$layout_path = __DIR__ . DIRECTORY_SEPARATOR . $metadata['layout'];
+			
+			if( $layout_path && is_file( $layout_path ) )
+			{
+				echo "Processing layout file: " . $layout_path . "\n";
+				
+				// Get contents of base layout file.
+				$layout_contents = file_get_contents( $layout_path );
+				// Get layout metadata.
+				$layout_metadata = array();
+				$this->processMetaData( $metaDataDelimiter, $layout_contents, $layout_metadata, $layout_contents );
+				// Update metadata with a merged version of the layout metadata and the current metadata, giving priority to current where conflicting keys exist.
+				$metadata = array_merge( $layout_metadata, $metadata );
+			}
+		}
+		
+		// Check for a content placeholder defined in metadata (usually layout metadata).
+		if( isset( $metadata['content_placeholder'] ) && trim( $metadata['content_placeholder'] ) )
+		{
+			echo "Replacing content placeholder with page content...\n";
+			// Update current page content with the layout content, replacing the placeholder with the content of current page.
+			$input_file_contents = str_replace( trim( $metadata['content_placeholder'] ), $input_file_contents, $layout_contents );
+		}
+		
 		$temp_file_path = tempnam( dirname( $path_to_input_file ), "staticphp_" );
 		echo "Creating temporary file (" . $temp_file_path . ")...\n";
 		file_put_contents( $temp_file_path, $input_file_contents );
@@ -206,16 +234,17 @@ class StaticPHP
 		
 		ob_end_clean();
 		
-		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
-		
 		echo "Removing temporary file...\n";
 		unlink( $temp_file_path );
-
+		
+		// Process MetaData PlaceHolders
+		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		
 		if( isset( $custom_output_path ) || isset( $metadata['custom_output_path'] ) )
 		{
 			if( isset( $metadata['custom_output_path'] ) )
 				$path_to_output_file = $metadata['custom_output_path'];
-			else if( isset( $custom_output_path ) )
+			else
 				$path_to_output_file = $custom_output_path;
 		}
 		else if( substr( $path_to_output_file, strrpos( $path_to_output_file, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
