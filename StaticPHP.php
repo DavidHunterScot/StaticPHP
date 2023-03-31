@@ -180,25 +180,9 @@ class StaticPHP
 		echo "Done.\n\n";
 	}
 	
-	private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
+	private function processLayoutMetaData( array &$metadata, string $metaDataDelimiter, string &$layout_contents )
 	{
-		if( ! is_file( $path_to_input_file ) )
-			return;
-		
-		echo "Processing PHP File: " . $path_to_input_file . "\n";
-		
-		ob_start();
-		
-		include $path_to_input_file;
-		$input_file_contents = ob_get_contents();
-		
-		ob_end_clean();
-		
-		$metadata = array();
-		
-		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
-		
-		// Check if a base layout is needed.
+		// Check if a base layout path is defined in metadata.
 		if( isset( $metadata['layout'] ) )
 		{
 			// Get full path to layout file assuming it is relative to StaticPHP.
@@ -217,69 +201,124 @@ class StaticPHP
 				$metadata = array_merge( $layout_metadata, $metadata );
 			}
 		}
-		
+	}
+	
+	private function processContentPlaceHolder( array $metadata, string &$file_contents, string $layout_contents )
+	{
 		// Check for a content placeholder defined in metadata (usually layout metadata).
 		if( isset( $metadata['content_placeholder'] ) && trim( $metadata['content_placeholder'] ) )
 		{
 			echo "Replacing content placeholder with page content...\n";
 			// Update current page content with the layout content, replacing the placeholder with the content of current page.
-			$input_file_contents = str_replace( trim( $metadata['content_placeholder'] ), $input_file_contents, $layout_contents );
+			$file_contents = str_replace( trim( $metadata['content_placeholder'] ), $file_contents, $layout_contents );
 		}
-		
-		$temp_file_path = tempnam( dirname( $path_to_input_file ), "staticphp_" );
+	}
+	
+	private function processTemporaryFile( string $path_to_file, string &$file_contents )
+	{
+		$temp_file_path = tempnam( dirname( $path_to_file ), "staticphp_" );
 		echo "Creating temporary file (" . $temp_file_path . ")...\n";
-		file_put_contents( $temp_file_path, $input_file_contents );
+		file_put_contents( $temp_file_path, $file_contents );
 		
 		echo "Including temporary file...\n";
         
 		ob_start();
 		
 		include $temp_file_path;
-		$input_file_contents = ob_get_contents();
+		$file_contents = ob_get_contents();
 		
 		ob_end_clean();
 		
 		echo "Removing temporary file...\n";
 		unlink( $temp_file_path );
+	}
+	
+	private function processOutputPath( string &$path_to_output_file, array $metadata, bool $friendly_urls, string $custom_output_path = null )
+	{
+		// Check if output file is index.html and skip further processing.
+		if( basename( $path_to_output_file ) == "index.html" )
+			return;
 		
-		// Process MetaData PlaceHolders
-		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
-		
-		if( isset( $custom_output_path ) || isset( $metadata['custom_output_path'] ) )
+		// Is a custom output path defined?
+		if( isset( $metadata['custom_output_path'] ) || $custom_output_path )
 		{
 			if( isset( $metadata['custom_output_path'] ) )
+			{
 				$path_to_output_file = $metadata['custom_output_path'];
-			else
-				$path_to_output_file = $custom_output_path;
+				return;
+			}
+			
+			$path_to_output_file = $custom_output_path;
+			return;
 		}
-		else if( substr( $path_to_output_file, strrpos( $path_to_output_file, DIRECTORY_SEPARATOR ) ) != DIRECTORY_SEPARATOR . "index.html" )
+		
+		// No custom output path defined, check for friendly URLs in metadata and give it priority.
+		if( isset( $metadata['friendly_urls'] ) )
 		{
-			if( isset( $metadata['friendly_urls'] ) && $metadata['friendly_urls'] == "true" )
-			{
-				if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
-				{
-					mkdir( substr( $path_to_output_file, 0, -5 ) );
-				}
-				
-				$path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
-			}
-			else if( ! isset( $metadata['friendly_urls'] ) && isset( $friendly_urls ) && boolval( $friendly_urls ) === true )
-			{
-				if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
-				{
-					mkdir( substr( $path_to_output_file, 0, -5 ) );
-				}
-				
-				$path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
-			}
+			if( $metadata['friendly_urls'] == "true" )
+				$friendly_urls = true;
+			if( $metadata['friendly_urls'] == "false" )
+				$friendly_urls = false;
 		}
 		
-		echo "Outputting HTML File: "  . $path_to_output_file . "\n";
+		// Check if friendly URLs are enabled.
+		if( $friendly_urls )
+		{
+			// Check if a directory matching the output filename minus the extension exists.
+			if( ! is_dir( substr( $path_to_output_file, 0, -5 ) ) )
+			{
+				// Create a directory matching the output filename minus the extension.
+				mkdir( substr( $path_to_output_file, 0, -5 ) );
+			}
+			
+			// Set path to output file to that of a directory with the same name minus extension with an index.html file inside it.
+			$path_to_output_file = substr( $path_to_output_file, 0, -5 ) . DIRECTORY_SEPARATOR . "index.html";
+		}
+	}
+	
+	private function outputFile( string $path_to_file, string $file_contents )
+	{
+		echo "Outputting File: "  . $path_to_file . "\n";
 		
-		@chmod( $path_to_output_file, 0755 );
-		$open_output_file_for_writing = fopen( $path_to_output_file, "w" );
-		fputs( $open_output_file_for_writing, $input_file_contents, strlen( $input_file_contents ) );
-		fclose( $open_output_file_for_writing );
+		@chmod( $path_to_file, 0755 );
+		$open_file_for_writing = fopen( $path_to_file, "w" );
+		fputs( $open_file_for_writing, $file_contents, strlen( $file_contents ) );
+		fclose( $open_file_for_writing );
+	}
+	
+	private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
+	{
+		if( ! is_file( $path_to_input_file ) )
+			return;
+		
+		echo "Processing PHP File: " . $path_to_input_file . "\n";
+		
+		ob_start();
+		
+		include $path_to_input_file;
+		$input_file_contents = ob_get_contents();
+		
+		ob_end_clean();
+		
+		$metadata = array();
+		
+		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		
+		$layout_contents = "";
+		$this->processLayoutMetaData( $metadata, $metaDataDelimiter, $layout_contents );
+		
+		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
+		
+		$this->processTemporaryFile( $path_to_input_file, $input_file_contents );
+		
+		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		
+		if( isset( $custom_output_path ) )
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
+		else
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls );
+		
+		$this->outputFile( $path_to_output_file, $input_file_contents );
 	}
 }
 
