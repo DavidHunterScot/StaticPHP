@@ -187,7 +187,12 @@ class StaticPHP
 		
 		echo "Processing PHP File: " . $path_to_input_file . "\n";
 		
-		$input_file_contents = file_get_contents( $path_to_input_file );
+		ob_start();
+		
+		include $path_to_input_file;
+		$input_file_contents = ob_get_contents();
+		
+		ob_end_clean();
 		
 		$metadata = array();
 		
