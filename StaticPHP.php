@@ -214,7 +214,7 @@ class StaticPHP
 		}
 	}
 	
-	private function processTemporaryFile( string $path_to_file, string &$file_contents )
+	private function processTemporaryFile( string $path_to_file, string &$file_contents, array $metadata )
 	{
 		$temp_file_path = tempnam( dirname( $path_to_file ), "staticphp_" );
 		echo "Creating temporary file (" . $temp_file_path . ")...\n";
@@ -309,7 +309,7 @@ class StaticPHP
 		
 		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
 		
-		$this->processTemporaryFile( $path_to_input_file, $input_file_contents );
+		$this->processTemporaryFile( $path_to_input_file, $input_file_contents, $metadata );
 		
 		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 		
