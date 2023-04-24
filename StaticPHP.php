@@ -174,6 +174,10 @@ class StaticPHP
 					echo "Replacing " . $key . " with " . $value . "\n";
 					return $value;
 				}
+				else
+				{
+					return $matches[ 0 ];
+				}
 			},
 			$input_contents
 		);
