@@ -120,7 +120,10 @@ class StaticPHP
 	
 	private function processMetaData( String $delimiter, String $input_contents, array &$metadata, String &$output_contents )
 	{
-        	$input_lines = explode( "\n", $input_contents );
+		if( ! isset( $metadata['staticphp_path'] ) )
+			$metadata['staticphp_path'] = __DIR__;
+		
+        $input_lines = explode( "\n", $input_contents );
 		
 		if( count( $input_lines ) > 0 && trim( $input_lines[ 0 ] ) == $delimiter )
 		{
@@ -292,6 +295,9 @@ class StaticPHP
 	
 	private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
 	{
+		if( ! isset( $staticphp_path ) )
+			$staticphp_path = __DIR__;
+
 		if( ! is_file( $path_to_input_file ) )
 			return;
 		
