@@ -36,6 +36,7 @@ The launcher will ensure you are always running the latest StaticPHP version upo
    - `$path_to_public_files` = Set this to the path where you wish your generated output files. A good name for the public files is `public` but this is up to you.
    - `$paths_to_ignore` = Modify this array to include elements that will form parts of paths you wish to ignore.
    - `$friendly_urls` = Setting friendly URLs to false will turn PHP files into their respective HTML files. Setting friendly URLs to true will turn PHP files into their respective directories with an index.html file inside.
+   - `$metadata_delimiter` = The delimiter that defines metadata information. Defaults to `---`.
 
 3. Execute the StaticPHP Launcher with the following command: `php StaticPHP-Launcher.php`
 
@@ -46,13 +47,14 @@ The launcher will ensure you are always running the latest StaticPHP version upo
 1. Download the latest StaticPHP file from [GitHub](https://raw.githubusercontent.com/DavidHunterScot/StaticPHP/master/StaticPHP.php).
    - https://raw.githubusercontent.com/DavidHunterScot/StaticPHP/master/StaticPHP.php
 
-2. Execute StaticPHP with the following command `php StaticPHP.php PATH_TO_SOURCE_FILES PATH_TO_PUBLIC_FILES PATH_TO_IGNORE FRIENDLY_URLS_TRUE_OR_FALSE`
+2. Execute StaticPHP with the following command `php StaticPHP.php PATH_TO_SOURCE_FILES PATH_TO_PUBLIC_FILES PATH_TO_IGNORE FRIENDLY_URLS_TRUE_OR_FALSE METADATA_DELIMITER`
    - The above command explained:
      - First part is you wanting to run PHP.
      - The second part is the file you wish PHP to execute.
      - The rest are parameters/arguments with information for StaticPHP. All should be self explanatory, but note the following.
        - `PATH_TO_IGNORE` is treated as a string, and therefore can only contain one element.
        - `FRIENDLY_URLS_TRUE_OR_FALSE` is treated as a boolean, so only true or false is acceptable, anything else will be treated as false.
+       - `METADATA_DELIMITER` is a string without spaces that delimits metadata information. Defaults to `---`.
 
 3. Check the output log for errors and fix them. Remember to re-execute StaticPHP after each modification of the source files or the output files may not reflect the changes.
 
@@ -69,8 +71,9 @@ The launcher will ensure you are always running the latest StaticPHP version upo
     $path_to_public_files = __DIR__ . DIRECTORY_SEPARATOR . 'PUBLIC-FILES';
     $paths_to_ignore = array( "IGNORE-FILES" );
     $friendly_urls = true;
+    $metadata_delimiter = '---';
     
-    new StaticPHP( $path_to_source_files, $path_to_public_files, $paths_to_ignore, $friendly_urls );
+    new StaticPHP( $path_to_source_files, $path_to_public_files, $paths_to_ignore, $friendly_urls, $metadata_delimiter );
    ```
 
 3. Execute your custom script with the following command `php CUSTOM-PHP-SCRIPT.php` (where CUSTOM-PHP-SCRIPT is the actual filename of your custom script).
