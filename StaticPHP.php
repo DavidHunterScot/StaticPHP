@@ -159,10 +159,10 @@ class StaticPHP
 		}
 	}
 	
-	private function processMetaDataPlaceHolders( String $delimiter, String $input_contents, array $metadata, String &$output_contents )
+	private function processMetaDataPlaceHolders( String $delimiter, String $input_contents, array $metadata, String &$output_contents, String $prefix = 'metadata' )
 	{
 		echo "Processing MetaData PlaceHolders...\n";
-		$pattern = '/' . $delimiter . '\s*metadata\.(\S+)\s*' . $delimiter . '/';
+		$pattern = '/' . $delimiter . '\s*' . $prefix . '\.(\S+)\s*' . $delimiter . '/';
 		
 		$output_contents = preg_replace_callback
 		(
