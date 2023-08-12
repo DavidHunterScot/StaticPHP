@@ -104,6 +104,12 @@ class StaticPHP
 				$this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls, $metaDataDelimiter );
 				continue;
 			}
+
+			if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -5 ) == ".html" )
+			{
+				$this->processHTML( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls, $metaDataDelimiter );
+				continue;
+			}
 			
 			if( is_file( $path_to_input_directory_item ) )
 			{
@@ -323,6 +329,34 @@ class StaticPHP
 		
 		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 		
+		if( isset( $custom_output_path ) )
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
+		else
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls );
+		
+		$this->outputFile( $path_to_output_file, $input_file_contents );
+	}
+
+	private function processHTML( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
+	{
+		if( ! is_file( $path_to_input_file ) )
+			return;
+
+		echo "Processing HTML File: " . $path_to_input_file . "\n";
+
+		$input_file_contents = file_get_contents( $path_to_input_file );
+
+		$metadata = array();
+
+		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+
+		$layout_contents = "";
+		$this->processLayoutMetaData( $metadata, $metaDataDelimiter, $layout_contents );
+
+		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
+
+		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+
 		if( isset( $custom_output_path ) )
 			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
 		else
