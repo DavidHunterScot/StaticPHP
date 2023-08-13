@@ -322,10 +322,11 @@ class StaticPHP
 		
 		$layout_contents = "";
 		$this->processLayoutMetaData( $metadata, $metaDataDelimiter, $layout_contents );
+
+		if( isset( $metadata['layout'] ) && $metadata['layout'] && substr( $metadata['layout'], -4 ) == ".php" )
+			$this->processTemporaryFile( $metadata['layout'], $layout_contents, $metadata );
 		
 		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
-		
-		$this->processTemporaryFile( $path_to_input_file, $input_file_contents, $metadata );
 		
 		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 		
@@ -352,6 +353,9 @@ class StaticPHP
 
 		$layout_contents = "";
 		$this->processLayoutMetaData( $metadata, $metaDataDelimiter, $layout_contents );
+
+		if( isset( $metadata['layout'] ) && $metadata['layout'] && substr( $metadata['layout'], -4 ) == ".php" )
+			$this->processTemporaryFile( $metadata['layout'], $layout_contents, $metadata );
 
 		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
 
