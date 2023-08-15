@@ -2,10 +2,25 @@
 
 class StaticPHP
 {
+	private $source_dir_path;
+	private $output_dir_path;
+	private $items_to_ignore;
+	private $friendly_urls;
+	private $metaDataDelimiter;
+
 	public function __construct( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore = [], bool $friendly_urls = false, String $metaDataDelimiter = "---" )
 	{
-		$this->emptyDirectory( $path_to_output_directory );
-		$this->processDirectory( $path_to_input_directory, $path_to_output_directory, $items_to_ignore, $friendly_urls, $metaDataDelimiter );
+		$this->source_dir_path = $path_to_input_directory;
+		$this->output_dir_path = $path_to_output_directory;
+		$this->items_to_ignore = $items_to_ignore;
+		$this->friendly_urls = $friendly_urls;
+		$this->metaDataDelimiter = $metaDataDelimiter;
+
+		$this->source_dir_path = str_replace( [ "\\", "/" ], DIRECTORY_SEPARATOR, $this->source_dir_path );
+		$this->output_dir_path = str_replace( [ "\\", "/" ], DIRECTORY_SEPARATOR, $this->output_dir_path );
+
+		$this->emptyDirectory( $this->output_dir_path );
+		$this->processDirectory( $this->source_dir_path, $this->output_dir_path );
 	}
 	
 	private function emptyDirectory( String $path_to_directory )
@@ -47,7 +62,7 @@ class StaticPHP
 			echo "Done. \n";
 	}
 	
-	private function processDirectory( String $path_to_input_directory, String $path_to_output_directory, array $items_to_ignore, bool $friendly_urls = false, String $metaDataDelimiter )
+	private function processDirectory( String $path_to_input_directory, String $path_to_output_directory )
 	{
 		if( ! is_dir( $path_to_input_directory ) )
 			die( "Directory does not exist: " . $path_to_input_directory );
@@ -75,14 +90,9 @@ class StaticPHP
 			$path_to_input_directory_item = $path_to_input_directory . DIRECTORY_SEPARATOR . $directory_item;
 			$path_to_output_directory_item = $path_to_output_directory . DIRECTORY_SEPARATOR . $directory_item;
 			
-			if( is_string( $items_to_ignore ) )
+			if( is_array( $this->items_to_ignore ) )
 			{
-				$items_to_ignore = explode( ";", $items_to_ignore );
-			}
-			
-			if( is_array( $items_to_ignore ) )
-			{
-				foreach( $items_to_ignore as $item_to_ignore )
+				foreach( $this->items_to_ignore as $item_to_ignore )
 				{
 					if( $item_to_ignore != "" && strpos( $directory_item, $item_to_ignore ) !== false )
 					{
@@ -94,20 +104,20 @@ class StaticPHP
 			
 			if( is_dir( $path_to_input_directory_item ) )
 			{
-				$this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item, $items_to_ignore, $friendly_urls, $metaDataDelimiter );
+				$this->processDirectory( $path_to_input_directory_item, $path_to_output_directory_item );
 			}
 			
 			if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -4 ) == ".php" )
 			{
 				$path_to_output_directory_item = substr( $path_to_output_directory_item, 0, -4 ) . ".html";
 				
-				$this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls, $metaDataDelimiter );
+				$this->processPHP( $path_to_input_directory_item, $path_to_output_directory_item );
 				continue;
 			}
 
 			if( is_file( $path_to_input_directory_item ) && substr( $directory_item, -5 ) == ".html" )
 			{
-				$this->processHTML( $path_to_input_directory_item, $path_to_output_directory_item, $friendly_urls, $metaDataDelimiter );
+				$this->processHTML( $path_to_input_directory_item, $path_to_output_directory_item );
 				continue;
 			}
 			
@@ -246,7 +256,7 @@ class StaticPHP
 		unlink( $temp_file_path );
 	}
 	
-	private function processOutputPath( string &$path_to_output_file, array $metadata, bool $friendly_urls, string $custom_output_path = null )
+	private function processOutputPath( string &$path_to_output_file, array $metadata, string $custom_output_path = null )
 	{
 		// Check if output file is index.html and skip further processing.
 		if( basename( $path_to_output_file ) == "index.html" )
@@ -264,6 +274,8 @@ class StaticPHP
 			$path_to_output_file = $custom_output_path;
 			return;
 		}
+
+		$friendly_urls = $this->friendly_urls;
 		
 		// No custom output path defined, check for friendly URLs in metadata and give it priority.
 		if( isset( $metadata['friendly_urls'] ) )
@@ -299,7 +311,7 @@ class StaticPHP
 		fclose( $open_file_for_writing );
 	}
 	
-	private function processPHP( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
+	private function processPHP( $path_to_input_file, $path_to_output_file )
 	{
 		if( ! isset( $staticphp_path ) )
 			$staticphp_path = __DIR__;
@@ -318,27 +330,29 @@ class StaticPHP
 		
 		$metadata = array();
 		
-		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		$this->processMetaData( $this->metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 		
 		$layout_contents = "";
-		$this->processLayoutMetaData( $metadata, $metaDataDelimiter, $layout_contents );
+		$this->processLayoutMetaData( $metadata, $this->metaDataDelimiter, $layout_contents );
 
 		if( isset( $metadata['layout'] ) && $metadata['layout'] && substr( $metadata['layout'], -4 ) == ".php" )
 			$this->processTemporaryFile( $metadata['layout'], $layout_contents, $metadata );
 		
 		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
 		
-		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		$this->processMetaDataPlaceHolders( $this->metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+
+		$input_file_contents = $this->processFunctionalBlocks( $input_file_contents );
 		
 		if( isset( $custom_output_path ) )
-			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
+			$this->processOutputPath( $path_to_output_file, $metadata, $custom_output_path );
 		else
-			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls );
+			$this->processOutputPath( $path_to_output_file, $metadata );
 		
 		$this->outputFile( $path_to_output_file, $input_file_contents );
 	}
 
-	private function processHTML( $path_to_input_file, $path_to_output_file, bool $friendly_urls, String $metaDataDelimiter )
+	private function processHTML( $path_to_input_file, $path_to_output_file )
 	{
 		if( ! is_file( $path_to_input_file ) )
 			return;
@@ -349,24 +363,211 @@ class StaticPHP
 
 		$metadata = array();
 
-		$this->processMetaData( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		$this->processMetaData( $this->metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 
 		$layout_contents = "";
-		$this->processLayoutMetaData( $metadata, $metaDataDelimiter, $layout_contents );
+		$this->processLayoutMetaData( $metadata, $this->metaDataDelimiter, $layout_contents );
 
 		if( isset( $metadata['layout'] ) && $metadata['layout'] && substr( $metadata['layout'], -4 ) == ".php" )
 			$this->processTemporaryFile( $metadata['layout'], $layout_contents, $metadata );
 
 		$this->processContentPlaceHolder( $metadata, $input_file_contents, $layout_contents );
 
-		$this->processMetaDataPlaceHolders( $metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+		$this->processMetaDataPlaceHolders( $this->metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
+
+		$input_file_contents = $this->processFunctionalBlocks( $input_file_contents );
 
 		if( isset( $custom_output_path ) )
-			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
+			$this->processOutputPath( $path_to_output_file, $metadata, $custom_output_path );
 		else
-			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls );
+			$this->processOutputPath( $path_to_output_file, $metadata );
 		
 		$this->outputFile( $path_to_output_file, $input_file_contents );
+	}
+
+	private function processFunctionalBlocks( String $content )
+	{
+		echo "Processing Functional Blocks...\n";
+
+		$delimiter = $this->metaDataDelimiter;
+
+		$pattern = '/' . preg_quote( $delimiter ) . ' (\w+)\(([^)]*)\) ' . preg_quote( $delimiter ) . '\s*(.*?)\s*' . preg_quote( $delimiter ) . ' end\1 ' . preg_quote( $delimiter ) . '/s';
+
+		$output = preg_replace_callback(
+			$pattern, function( $matches ) use ( $delimiter )
+			{
+				$funcName = $matches[ 1 ];
+				$paramStr = $matches[ 2 ];
+				$blockContent = $matches[ 3 ];
+
+				switch( $funcName )
+				{
+					case 'loop':
+						$blockOutput = $this->processLoopFunctionalBlock( $this->parseFunctionalBlockParameters( $paramStr ), $blockContent );
+
+						if( $blockOutput !== null && $blockOutput !== "" )
+						{
+							return $blockOutput; // Replaced Content
+						}
+
+						break;
+				}
+
+				return $matches[ 0 ]; // Original Content
+			},
+			$content
+		);
+
+		echo "...Functional Blocks Processed.\n";
+
+		return $output;
+	}
+
+	private function processLoopFunctionalBlock( array $params, String $loopContent )
+	{
+		if( ! isset( $params[ 'dir' ] ) || ! is_dir( $params[ 'dir' ] ) )
+		{
+			return null;
+		}
+
+		echo "Processing Loop Functional Block...\n";
+
+		$dir = __DIR__ . DIRECTORY_SEPARATOR . $params[ 'dir' ];
+
+		$dir = str_replace( [ "\\", "/" ], DIRECTORY_SEPARATOR, $dir );
+
+		$output = array();
+
+		$output = $this->processLoopDir( $dir, $params, $loopContent, $output );
+
+		if( isset( $params[ 'json' ] ) )
+		{
+			$jsonFilePath = str_replace( [ "\\", "/" ], DIRECTORY_SEPARATOR, $params[ 'json' ] );
+			
+			$jsonFilePathParts = explode( DIRECTORY_SEPARATOR, $jsonFilePath );
+			
+			$currentJsonFilePath = "";
+			
+			for( $cjfp = 0; $cjfp < count( $jsonFilePathParts ) -1; $cjfp++ )
+			{
+				$currentJsonFilePath .= $jsonFilePathParts[ $cjfp ] . DIRECTORY_SEPARATOR;
+				
+				if( ! is_dir( $currentJsonFilePath ) && $cjfp != count( $jsonFilePathParts ) -1 )
+				{
+					mkdir( $currentJsonFilePath );
+				}
+			}
+			
+			echo "Outputting JSON File: " . $jsonFilePath . "\n";
+			file_put_contents( $jsonFilePath, json_encode( $output ) );
+			echo "JSON File Complete.\n";
+		}
+
+		$output_str = "";
+
+		foreach( $output as $output_item )
+		{
+			$output_str .= $output_item['outputContent'];
+		}
+
+		echo "...Loop Functional Block Processed.\n";
+
+		return $output_str;
+	}
+
+	private function processLoopDir( String $dirPath, array $params, String $loopContent, array $output = array() )
+	{
+		if( ! is_dir( $dirPath ) )
+			return;
+
+		echo "Processing Loop Directory: " . $dirPath . "\n";
+
+		$dirContents = scandir( $dirPath );
+
+		if( isset( $params['sort'] ) && $params['sort'] == "decending" )
+		{
+			$dirContents = array_reverse( $dirContents );
+		}
+
+		foreach( $dirContents as $dirItem )
+		{
+			if( $dirItem === '.' || $dirItem === '..' )
+			{
+				continue;
+			}
+
+			$dirItemPath = $dirPath . DIRECTORY_SEPARATOR . $dirItem;
+
+			if( is_dir( $dirItemPath ) )
+			{
+				$output = $this->processLoopDir( $dirItemPath, $params, $loopContent, $output );
+				continue;
+			}
+
+			if( ! is_file( $dirItemPath ) )
+			{
+				continue;
+			}
+
+			if( substr( $dirItem, -4 ) !== ".php" && substr( $dirItem, -5 ) !== ".html" )
+			{
+				continue;
+			}
+
+			
+			$fileContents = file_get_contents( $dirItemPath );
+			
+			$thisLoopContent = $loopContent;
+			
+			$metadata = array();
+			
+			$this->processMetaData( $this->metaDataDelimiter, $fileContents, $metadata, $fileContents );
+
+			unset( $metadata['staticphp_path'] );
+			
+			$fileOutputPath = str_replace( [ $this->source_dir_path, ".php" ], [ $this->output_dir_path, ".html" ], $dirItemPath );
+
+			$fileURI = $fileOutputPath;
+			
+			$this->processOutputPath( $fileURI, $metadata );
+
+			$fileURI = str_replace( $this->output_dir_path, "", $fileURI );
+
+			$fileURI = str_replace( [ "\\", "index.html" ], [ "/", "" ], $fileURI );
+			
+			$metadata[ 'uri' ] = $fileURI;
+			
+			$this->processMetaDataPlaceHolders( $this->metaDataDelimiter, $loopContent, $metadata, $thisLoopContent );
+			
+			if( isset( $params[ 'content_placeholder' ] ) && $params[ 'content_placeholder' ] )
+			{
+				$thisLoopContent = str_replace( $params[ 'content_placeholder' ], $fileContents, $thisLoopContent );
+			}
+
+			$toOutput['metadata'] = $metadata;
+			$toOutput['fileContents'] = $fileContents;
+			$toOutput['outputContent'] = $thisLoopContent;
+
+			$output[] = $toOutput;
+
+			echo "...Loop Directory Processed.\n";
+		}
+
+		return $output;
+	}
+
+	private function parseFunctionalBlockParameters( String $paramStr )
+	{
+		$params = [];
+		$paramPairs = explode( ',', $paramStr );
+		
+		foreach( $paramPairs as $pair )
+		{
+			list( $key, $value ) = explode( '=', $pair, 2 );
+			$params[ trim( $key ) ] = trim( trim( $value ), "'\"" );
+		}
+		
+		return $params;
 	}
 }
 
