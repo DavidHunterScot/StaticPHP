@@ -537,7 +537,7 @@ class StaticPHP
 			
 			$metadata[ 'uri' ] = $fileURI;
 			
-			$this->processMetaDataPlaceHolders( $this->metaDataDelimiter, $loopContent, $metadata, $thisLoopContent );
+			$this->processMetaDataPlaceHolders( $this->metaDataDelimiter, $loopContent, $metadata, $thisLoopContent, 'loop' );
 			
 			if( isset( $params[ 'content_placeholder' ] ) && $params[ 'content_placeholder' ] )
 			{
