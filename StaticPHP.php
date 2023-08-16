@@ -514,6 +514,18 @@ class StaticPHP
 				continue;
 			}
 
+			if( is_array( $this->items_to_ignore ) )
+			{
+				foreach( $this->items_to_ignore as $item_to_ignore )
+				{
+					if( $item_to_ignore != "" && strpos( $dirItemPath, $item_to_ignore ) !== false )
+					{
+						echo "Loop Ignoring Item: " . $dirItemPath . "\n";
+						continue( 2 );
+					}
+				}
+			}
+
 			
 			$fileContents = file_get_contents( $dirItemPath );
 			
