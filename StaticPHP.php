@@ -256,7 +256,7 @@ class StaticPHP
 		unlink( $temp_file_path );
 	}
 	
-	private function processOutputPath( string &$path_to_output_file, array $metadata, string $custom_output_path = null )
+	private function processOutputPath( string &$path_to_output_file, array $metadata, bool $friendly_urls, string $custom_output_path = null )
 	{
 		// Check if output file is index.html and skip further processing.
 		if( basename( $path_to_output_file ) == "index.html" )
@@ -275,8 +275,6 @@ class StaticPHP
 			return;
 		}
 
-		$friendly_urls = $this->friendly_urls;
-		
 		// No custom output path defined, check for friendly URLs in metadata and give it priority.
 		if( isset( $metadata['friendly_urls'] ) )
 		{
@@ -343,11 +341,14 @@ class StaticPHP
 		$this->processMetaDataPlaceHolders( $this->metaDataDelimiter, $input_file_contents, $metadata, $input_file_contents );
 
 		$input_file_contents = $this->processFunctionalBlocks( $input_file_contents );
+
+		if( ! isset( $friendly_urls ) )
+			$friendly_urls = $this->friendly_urls;
 		
 		if( isset( $custom_output_path ) )
-			$this->processOutputPath( $path_to_output_file, $metadata, $custom_output_path );
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
 		else
-			$this->processOutputPath( $path_to_output_file, $metadata );
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls );
 		
 		$this->outputFile( $path_to_output_file, $input_file_contents );
 	}
@@ -377,10 +378,13 @@ class StaticPHP
 
 		$input_file_contents = $this->processFunctionalBlocks( $input_file_contents );
 
+		if( ! isset( $friendly_urls ) )
+			$friendly_urls = $this->friendly_urls;
+
 		if( isset( $custom_output_path ) )
-			$this->processOutputPath( $path_to_output_file, $metadata, $custom_output_path );
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls, $custom_output_path );
 		else
-			$this->processOutputPath( $path_to_output_file, $metadata );
+			$this->processOutputPath( $path_to_output_file, $metadata, $friendly_urls );
 		
 		$this->outputFile( $path_to_output_file, $input_file_contents );
 	}
