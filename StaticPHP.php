@@ -488,9 +488,13 @@ class StaticPHP
 
 		$dirContents = scandir( $dirPath );
 
-		if( isset( $params['sort'] ) && $params['sort'] == "decending" )
+		if( isset( $params['sort'] ) && $params['sort'] == "ascending" )
 		{
-			$dirContents = array_reverse( $dirContents );
+			$dirContents = sort( $dirContents );
+		}
+		elseif( isset( $params['sort'] ) && $params['sort'] == "descending" )
+		{
+			$dirContents = rsort( $dirContents );
 		}
 
 		foreach( $dirContents as $dirItem )
