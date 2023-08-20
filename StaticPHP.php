@@ -548,8 +548,11 @@ class StaticPHP
 			$fileOutputPath = str_replace( [ $this->source_dir_path, ".php" ], [ $this->output_dir_path, ".html" ], $dirItemPath );
 
 			$fileURI = $fileOutputPath;
+
+			if( ! isset( $friendly_urls ) )
+				$friendly_urls = $this->friendly_urls;
 			
-			$this->processOutputPath( $fileURI, $metadata );
+			$this->processOutputPath( $fileURI, $metadata, $friendly_urls );
 
 			$fileURI = str_replace( $this->output_dir_path, "", $fileURI );
 
