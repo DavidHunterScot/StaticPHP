@@ -490,11 +490,11 @@ class StaticPHP
 
 		if( isset( $params['sort'] ) && $params['sort'] == "ascending" )
 		{
-			$dirContents = sort( $dirContents );
+			sort( $dirContents );
 		}
 		elseif( isset( $params['sort'] ) && $params['sort'] == "descending" )
 		{
-			$dirContents = rsort( $dirContents );
+			rsort( $dirContents );
 		}
 
 		foreach( $dirContents as $dirItem )
