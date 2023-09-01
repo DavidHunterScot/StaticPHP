@@ -534,6 +534,20 @@ class StaticPHP
 				}
 			}
 
+			if( isset( $params[ 'ignores' ] ) )
+			{
+				$ignore_items = explode( ";", $params[ 'ignores' ] );
+
+				foreach( $ignore_items as $ignore_item )
+				{
+					if( strpos( $dirItemPath, $ignore_item ) !== false )
+					{
+						echo "Loop Ignoring Item: " . $dirItemPath . "\n";
+						continue( 2 );
+					}
+				}
+			}
+
 			
 			$fileContents = file_get_contents( $dirItemPath );
 			
