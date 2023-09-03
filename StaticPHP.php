@@ -540,6 +540,8 @@ class StaticPHP
 
 				foreach( $ignore_items as $ignore_item )
 				{
+					$ignore_item = trim( $ignore_item );
+					
 					if( strpos( $dirItemPath, $ignore_item ) !== false )
 					{
 						echo "Loop Ignoring Item: " . $dirItemPath . "\n";
